@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Juego de Cartas Binarias </title>
+    <style>
+        table { border-collapse: collapse; margin: 10px; display: inline-block; }
+        th, td { border: 1px solid #333; padding: 5px 10px; text-align: center; }
+        .tablas { margin-bottom: 20px; }
+        .resultado { font-size: 1.2em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Cartas Binarias (1-31)</h2>
+    <p>Piense en un número del 1 al 31. Seleccione las cartas donde aparece su número:</p>
+    <form id="binarioForm">
+        <div class="tablas" id="tablas"></div>
+        <button type="submit">Adivinar número</button>
+    </form>
+    <div class="resultado" id="resultado"></div>
+
+    <script>
+        // Generar las 5 cartas binarias
+        const tablasDiv = document.getElementById('tablas');
+        const cartas = [];
+        for (let bit = 0; bit < 5; bit++) {
+            let nums = [];
+            for (let n = 1; n <= 31; n++) {
+                if ((n >> bit) & 1) nums.push(n);
+            }
+            cartas.push(nums);
+        }
+
+        // Mostrar las tablas con checkbox
+        cartas.forEach((nums, i) => {
+            let html = `<label><input type="checkbox" name="carta" value="${i}"> Carta ${i+1}</label><br>`;
+            html += '<table><tr>';
+            nums.forEach((n, idx) => {
+                html += `<td>${n}</td>`;
+                if ((idx+1) % 5 === 0) html += '</tr><tr>';
+            });
+            html += '</tr></table>';
+            tablasDiv.innerHTML += html;
+        });
+
+        // Calcular el número pensado
+        document.getElementById('binarioForm').onsubmit = function(e) {
+            e.preventDefault();
+            let seleccionados = Array.from(document.querySelectorAll('input[name="carta"]:checked')).map(cb => parseInt(cb.value));
+            let numero = seleccionados.reduce((acc, bit) => acc + (1 << bit), 0);
+            document.getElementById('resultado').textContent = numero > 0 ? `¡El número que pensaste es: ${numero}!` : 'Selecciona al menos una carta.';
+        };
+    </script>
+</body>
+</html>
