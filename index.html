@@ -2,54 +2,149 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>pagina de Juan Diego B</title>
+    <title>Calculadora Científica</title>
     <style>
-        table { border-collapse: collapse; margin: 10px; display: inline-block; }
-        th, td { border: 1px solid #333; padding: 5px 10px; text-align: center; }
-        .tablas { margin-bottom: 20px; }
-        .resultado { font-size: 1.2em; margin-top: 20px; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; }
+        .calculator {
+            width: 340px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #222;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #0004;
+        }
+        .display {
+            width: 100%;
+            height: 50px;
+            background: #111;
+            color: #0f0;
+            font-size: 1.5em;
+            text-align: right;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        button {
+            padding: 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background: #333;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #444; }
+        .span-2 { grid-column: span 2; }
     </style>
 </head>
 <body>
-    <h2>Cartas Binarias </h2>
-    <p>Piense en un número del 1 al 31. Seleccione las cartas donde aparece su número:</p>
-    <form id="binarioForm">
-        <div class="tablas" id="tablas"></div>
-        <button type="submit">Adivinar número</button>
-    </form>
-    <div class="resultado" id="resultado"></div>
+    <div class="calculator">
+        <div id="display" class="display">0</div>
+        <div class="buttons">
+            <button onclick="clearDisplay()">C</button>
+            <button onclick="backspace()">←</button>
+            <button onclick="append('(')">(</button>
+            <button onclick="append(')')">)</button>
+            <button onclick="append('/')">÷</button>
 
+            <button onclick="append('7')">7</button>
+            <button onclick="append('8')">8</button>
+            <button onclick="append('9')">9</button>
+            <button onclick="append('*')">×</button>
+            <button onclick="append('^')">^</button>
+
+            <button onclick="append('4')">4</button>
+            <button onclick="append('5')">5</button>
+            <button onclick="append('6')">6</button>
+            <button onclick="append('-')">−</button>
+            <button onclick="func('sqrt')">√</button>
+
+            <button onclick="append('1')">1</button>
+            <button onclick="append('2')">2</button>
+            <button onclick="append('3')">3</button>
+            <button onclick="append('+')">+</button>
+            <button onclick="func('log')">log</button>
+
+            <button onclick="append('0')">0</button>
+            <button onclick="append('.')">.</button>
+            <button onclick="func('sin')">sin</button>
+            <button onclick="func('cos')">cos</button>
+            <button onclick="func('tan')">tan</button>
+
+            <button class="span-2" onclick="func('pi')">π</button>
+            <button class="span-2" onclick="func('e')">e</button>
+            <button class="span-2" onclick="calculate()">=</button>
+        </div>
+    </div>
     <script>
-        // Generar las 5 cartas binarias
-        const tablasDiv = document.getElementById('tablas');
-        const cartas = [];
-        for (let bit = 0; bit < 5; bit++) {
-            let nums = [];
-            for (let n = 1; n <= 31; n++) {
-                if ((n >> bit) & 1) nums.push(n);
-            }
-            cartas.push(nums);
+        let display = document.getElementById('display');
+        let current = '';
+
+        function updateDisplay() {
+            display.textContent = current || '0';
         }
 
-        // Mostrar las tablas con checkbox
-        cartas.forEach((nums, i) => {
-            let html = `<label><input type="checkbox" name="carta" value="${i}"> Carta ${i+1}</label><br>`;
-            html += '<table><tr>';
-            nums.forEach((n, idx) => {
-                html += `<td>${n}</td>`;
-                if ((idx+1) % 5 === 0) html += '</tr><tr>';
-            });
-            html += '</tr></table>';
-            tablasDiv.innerHTML += html;
-        });
+        function append(char) {
+            if (char === '^') {
+                current += '**';
+            } else {
+                current += char;
+            }
+            updateDisplay();
+        }
 
-        // Calcular el número pensado
-        document.getElementById('binarioForm').onsubmit = function(e) {
-            e.preventDefault();
-            let seleccionados = Array.from(document.querySelectorAll('input[name="carta"]:checked')).map(cb => parseInt(cb.value));
-            let numero = seleccionados.reduce((acc, bit) => acc + (1 << bit), 0);
-            document.getElementById('resultado').textContent = numero > 0 ? `¡El número que pensaste es: ${numero}!` : 'Selecciona al menos una carta.';
-        };
+        function clearDisplay() {
+            current = '';
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (current.endsWith('**')) {
+                current = current.slice(0, -2);
+            } else {
+                current = current.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function func(name) {
+            if (name === 'sqrt') {
+                current += 'Math.sqrt(';
+            } else if (name === 'log') {
+                current += 'Math.log10(';
+            } else if (name === 'sin') {
+                current += 'Math.sin(';
+            } else if (name === 'cos') {
+                current += 'Math.cos(';
+            } else if (name === 'tan') {
+                current += 'Math.tan(';
+            } else if (name === 'pi') {
+                current += 'Math.PI';
+            } else if (name === 'e') {
+                current += 'Math.E';
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                // Replace commas with dots for decimal
+                let expr = current.replace(/,/g, '.');
+                let result = eval(expr);
+                if (result === undefined) result = '';
+                current = result.toString();
+            } catch {
+                current = 'Error';
+            }
+            updateDisplay();
+        }
     </script>
 </body>
 </html>
